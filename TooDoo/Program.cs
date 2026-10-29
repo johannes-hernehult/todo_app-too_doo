@@ -1,10 +1,6 @@
 ﻿using TooDoo;
 
-Console.Clear();
+Console.WriteLine("TooDoo - Your personal todo console app");
 
-using var animationToken = CassetteHeader.StartBackgroundAnimation(140);
-
-Console.SetCursorPosition(0, 4);
-Console.Write("Enter task name: ");
-
-string task = Console.ReadLine();
+var app = new App();
+app.Run();
