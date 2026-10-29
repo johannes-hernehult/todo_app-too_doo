@@ -1,8 +1,17 @@
-using System;
+namespace TooDoo;
 using System.Runtime.InteropServices;
-using System.Threading;
-using System.Threading.Tasks;
 
+
+/*
+ * AI generated code
+ * I just wanted a nice looping animated cassette and application name on top.
+ * I only have a vague understanding of what is going on in this file.
+ * What I learned:
+ *  - Can set custom colors using ANSI escape sequences
+ *  - Animation runs on a separate thread to the main one to keep it form interfering with the app (though it probably wouldn't be an issue in such a small app)
+ *  - Console Apps can do more customization than I first thought.
+ *  - It does some native C stuff that is beyond me at the moment.
+ */
 public static class CassetteHeader
 {
     private static readonly string Amber = "\x1b[38;2;255;176;0m";  // CRT Amber

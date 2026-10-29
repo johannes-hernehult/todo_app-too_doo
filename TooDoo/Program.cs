@@ -1,4 +1,6 @@
-﻿Console.Clear();
+﻿using TooDoo;
+
+Console.Clear();
 
 using var animationToken = CassetteHeader.StartBackgroundAnimation(140);
 
