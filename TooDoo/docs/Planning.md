@@ -80,7 +80,8 @@ Pick an option:
 | `TaskStatus` | Enum: `NOT_DONE`, `DONE` |
 | `TaskManager` | Task logic: add, edit, complete, delete, sort |
 | `FileStorage` | Save and load JSON |
-| `UI` | Menu flow and display |
+| `App` | Application flow: menus, prompts, and coordinating task operations |
+| `UI` | Reusable display helpers: render text, task lists, counts, and tables |
 | `UserInput` | Prompts that loop until valid |
 | `Validate` | Pure checks (valid date, valid int, etc.) |
 
@@ -113,17 +114,23 @@ classDiagram
     +Load()
   }
 
-  class UI {
+  class App {
     -TaskManager _taskManager
     -UserInput _userInput
-    +UI(taskManager: TaskManager, userInput: UserInput)
+    +App(taskManager: TaskManager, userInput: UserInput)
     +Run(): void
     -ShowMainMenu(): void
     -ShowTasks(): void
     -AddTask(): void
     -EditTasks(): void
-    -ShowTaskCounts(): void
-    -DisplayTasks(): void
+  }
+
+  class UI {
+    <<utility>>
+    +RenderText(text: string): void
+    +RenderTaskCounts(todo: int, done: int): void
+    +RenderTasks(tasks: Task[]): void
+    +RenderTable(headers: string[], rows: string[][]): void
   }
 
   class UserInput {
@@ -141,7 +148,8 @@ classDiagram
   Task --> TaskStatus
   TaskManager o-- Task
   TaskManager --> FileStorage
-  UI --> TaskManager : asks it to manage tasks
-  UI --> UserInput : asks it to read input
+  App --> TaskManager : coordinates task operations
+  App --> UserInput : reads user input
+  App --> UI : renders output
   UserInput ..> Validate : checks and parses input
-```
+````
