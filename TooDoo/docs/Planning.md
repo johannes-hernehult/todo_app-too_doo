@@ -90,66 +90,69 @@ classDiagram
   class Task {
     +int Id
     +string Title
-    +DateTime DueDate
+    +DateOnly DueDate
     +TaskStatus Status
     +string? Project
   }
 
   class TaskStatus {
     <<enumeration>>
-    NOT_DONE
-    DONE
+    NotDone
+    Done
+  }
+
+  class TaskSort {
+    <<enumeration>>
+    Date
+    Project
   }
 
   class TaskManager {
-    +Add()
-    +Edit()
-    +Complete()
-    +Delete()
-    +Sort()
+    -List~Task~ _tasks
+    +GetAll() IReadOnlyList~Task~
+    +GetSorted(sort: TaskSort) IReadOnlyList~Task~
+    +Add(title: string, dueDate: DateOnly, project: string?) Task
+    +Edit(id: int, title: string, dueDate: DateOnly, project: string?) bool
+    +MarkDone(id: int) bool
+    +Delete(id: int) bool
+    +GetCounts() (int todo, int done)
   }
 
   class FileStorage {
-    +Save()
-    +Load()
+    +Load() List~Task~
+    +Save(tasks: IReadOnlyList~Task~) void
   }
 
   class App {
     -TaskManager _taskManager
-    -UserInput _userInput
-    +App(taskManager: TaskManager, userInput: UserInput)
-    +Run(): void
-    -ShowMainMenu(): void
-    -ShowTasks(): void
-    -AddTask(): void
-    -EditTasks(): void
-  }
-
-  class UI {
-    <<utility>>
-    +RenderText(text: string): void
-    +RenderTaskCounts(todo: int, done: int): void
-    +RenderTasks(tasks: Task[]): void
-    +RenderTable(headers: string[], rows: string[][]): void
+    -FileStorage _storage
+    -UserInput _input
+    -UI _ui
+    +Run() void
+    -RunMainMenu() void
+    -ShowTasks() void
+    -AddTask() void
+    -EditTasks() void
+    -SaveAndQuit() void
   }
 
   class UserInput {
-    +ReadString(prompt: string, allowEmpty: bool): string?
-    +ReadInt(prompt: string, min: int?, max: int?): int
-    +ReadDate(prompt: string): DateTime
+    +ReadString(prompt: string, allowEmpty: bool) string?
+    +ReadDate(prompt: string) DateOnly
+    +ReadCommand() string
   }
 
-  class Validate {
-    +IsValidString(value: string?, allowEmpty: bool): bool
-    +ParseInt(value: string?, min: int?, max: int?): int?
-    +ParseDate(value: string?): DateTime?
+  class UI {
+    +RenderMainMenu(todo: int, done: int) void
+    +RenderTasks(tasks: IReadOnlyList~Task~) void
+    +RenderMessage(message: string) void
   }
 
   Task --> TaskStatus
-  TaskManager o-- Task
-  TaskManager --> FileStorage
-  App --> TaskManager : coordinates task operations
-  App --> UserInput : reads user input
-  App --> UI : renders output
-  UserInput ..> Validate : checks and parses input
+  TaskManager --> TaskSort
+  TaskManager "1" *-- "0..*" Task : manages
+  App --> TaskManager
+  App --> FileStorage
+  App --> UserInput
+  App --> UI
 ````
