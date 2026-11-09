@@ -1,5 +1,6 @@
 using TooDoo.Services;
 using TooDoo.ConsoleUI;
+using TaskStatus = TooDoo.Models.TaskStatus;
 
 namespace TooDoo;
 
@@ -34,6 +35,9 @@ public class App(TaskService taskService)
                     break;
                 case "0":
                     // Save tasks here when persistence is implemented.
+                    Console.Clear();
+                    Console.WriteLine("Ok, bye!");
+
                     return;
                 default:
                     Console.WriteLine("Choose an option from 1 to 3 (0 to exit).");
@@ -47,24 +51,28 @@ public class App(TaskService taskService)
     private void ViewTasks()
     {
         Console.Clear();
-        Console.WriteLine("Tasks");
-        Console.WriteLine();
-
+        DateOnly today = DateOnly.FromDateTime(DateTime.Today);
+        DateOnly startDate = today.AddDays(-2);
         var tasks = taskService.GetTasks();
 
-        if (tasks.Count == 0)
-        {
-            Console.WriteLine("No tasks yet.");
-        }
-        else
-        {
-            foreach (var task in tasks)
-            {
-                Console.WriteLine($"{task.Id} | {task.Title}");
-                Console.WriteLine(
-                    $"  Due: {task.DueDate:yyyy-MM-dd} | Project: {task.Project ?? "None"} | Status: {task.Status}");
-            }
-        }
+        var orderedTasks = tasks.OrderBy(task => task.DueDate).ThenBy(task => task.Project).ThenBy(task => task.Title)
+            .ToList();
+
+        var notDoneTasks = orderedTasks.Where(task => task.Status == TaskStatus.NotDone).ToList();
+        var doneTasksPastThreeDays = orderedTasks
+            .Where(task =>
+                task.Status == TaskStatus.Done &&
+                task.DueDate >= startDate &&
+                task.DueDate <= today)
+            .ToList();
+
+        Console.WriteLine("Tasks to do");
+        UI.RenderTasks(notDoneTasks, TaskColumns.Id | TaskColumns.Title | TaskColumns.DueDate | TaskColumns.Project);
+
+        Console.WriteLine();
+        Console.WriteLine("Done tasks");
+        //UI.RenderTasks(doneTasks, TaskColumns.Id | TaskColumns.Title | TaskColumns.DueDate | TaskColumns.Project);
+        UI.RenderTasks(doneTasksPastThreeDays);
 
         Console.WriteLine();
         UserInput.Prompt("Press Enter to return to the menu: ");
