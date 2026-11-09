@@ -49,13 +49,13 @@ public class App(TaskService taskService, UserInput userInput)
         Console.Clear();
         UI.RenderMenu("Main Menu", menuItems);
 
-        return userInput.ReadNormalizedString("Pick an option: ");
+        return userInput.Prompt("Pick an option: ");
     }
 
     private void ViewTasks()
     {
         Console.Clear();
         Console.WriteLine("Tasks");
-        userInput.ReadNormalizedString("Press Enter to return to the menu: ");
+        userInput.Prompt("Press Enter to return to the menu: ");
     }
 }

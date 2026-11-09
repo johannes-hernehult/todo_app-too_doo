@@ -75,22 +75,51 @@ Pick an option:
     - `u <TaskID>`: update, reusing the add flow with current values prefilled
         - Enter keeps the current value
         - `-` clears the project as it is optional
-        - `m <taskID>`: toggle DONE / NOT_DONE
-        - `x <TaskID>`: delete (asks for confirmation)
+    - `r -a` / `r <TaskID>`: Reschedule all late task to today or just one by ID
+    - `m <taskID>`: toggle DONE / NOT_DONE
+    - `x <TaskID>`: delete (asks for confirmation)
+    - Empty input: back to menu
 
 **(4) Save and quit**
 
 - Initially only save here
-- Add incrimental saving when its done and if there is time
+- Add incremental saving when its done and if there is time
 
-## Classes
+## Classes & Methods
+
 - UI
+    - RenderMenu
+    - RenderHeading
+    - RenderText
+    - RenderList
+    -
 - UserInput
+    - Prompt
+        - Move to UI ? Call it RenderPrompt ??
 - Validate
+    - Validate string input
+    - Validate int input
+    - Validate DateOnly input
+    -
 - Task
-- TaskStatus
+    - Id
+    - Title
+    - Status (enum)
+    - DueDate
+    - Project?
+    -
+- TaskStatus (enum)
+  - DONE
+  - NOT_DONE
 - FileService
+  - Save
+  - Load
 - TaskService
+  - private List<Task> _tasks
+  - Create
+  - Read
+  - Update
+  - Delete
 
 ```mermaid
 classDiagram
