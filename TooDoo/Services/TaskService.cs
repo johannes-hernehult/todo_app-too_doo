@@ -34,7 +34,7 @@ public class TaskService
     {
         const string alphabet = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
-        if (_tasks.Count >= 36 * 36 * 36 * 36 * 36)
+        if (_tasks.Count >= 36 * 36 * 36 * 36) //1_679_616 possible ids
         {
             throw new InvalidOperationException("No task IDs are available.");
         }
@@ -42,7 +42,7 @@ public class TaskService
         string id;
         do
         {
-            id = string.Create(5, alphabet, static (characters, chars) =>
+            id = string.Create(4, alphabet, static (characters, chars) =>
             {
                 for (int i = 0; i < characters.Length; i++)
                 {
