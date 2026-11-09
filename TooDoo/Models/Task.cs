@@ -14,7 +14,7 @@ public class TaskItem
     public string? Project { get; private set; }
     public TaskStatus Status { get; private set; }
 
-    public Task(string id, string title, DateOnly dueDate, string? project,
+    public TaskItem(string id, string title, DateOnly dueDate, string? project,
         TaskStatus status = TaskStatus.NotDone)
     {
         Id = id;
