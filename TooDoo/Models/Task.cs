@@ -23,8 +23,8 @@ public class TaskItem
         string? project,
         TaskStatus status = TaskStatus.NotDone)
     {
-        ValidateRequired(id, nameof(id));
-        ValidateRequired(title, nameof(title));
+        ValidateString(id, nameof(id));
+        ValidateString(title, nameof(title));
         ValidateDueDate(dueDate, nameof(dueDate));
         ValidateStatus(status, nameof(status));
 
@@ -37,7 +37,7 @@ public class TaskItem
 
     public void UpdateTitle(string title)
     {
-        ValidateRequired(title, nameof(title));
+        ValidateString(title, nameof(title));
         Title = title;
     }
 
@@ -68,7 +68,7 @@ public class TaskItem
         Status = status;
     }
 
-    private static void ValidateRequired(string? value, string parameterName)
+    private static void ValidateString(string? value, string parameterName)
     {
         string? error = Validate.GetError(DataType.String, value);
 

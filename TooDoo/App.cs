@@ -48,6 +48,25 @@ public class App(TaskService taskService)
     {
         Console.Clear();
         Console.WriteLine("Tasks");
+        Console.WriteLine();
+
+        var tasks = taskService.GetTasks();
+
+        if (tasks.Count == 0)
+        {
+            Console.WriteLine("No tasks yet.");
+        }
+        else
+        {
+            foreach (var task in tasks)
+            {
+                Console.WriteLine($"{task.Id} | {task.Title}");
+                Console.WriteLine(
+                    $"  Due: {task.DueDate:yyyy-MM-dd} | Project: {task.Project ?? "None"} | Status: {task.Status}");
+            }
+        }
+
+        Console.WriteLine();
         UserInput.Prompt("Press Enter to return to the menu: ");
     }
 }
