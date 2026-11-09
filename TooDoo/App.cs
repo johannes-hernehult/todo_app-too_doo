@@ -1,5 +1,7 @@
+using System.Globalization;
 using TooDoo.Services;
 using TooDoo.ConsoleUI;
+using TooDoo.Models;
 using TaskStatus = TooDoo.Models.TaskStatus;
 
 namespace TooDoo;
@@ -26,8 +28,7 @@ public class App(TaskService taskService)
                     ViewTasks();
                     break;
                 case "2":
-                    Console.WriteLine("Add task flow goes here.");
-                    Console.ReadKey();
+                    AddTask();
                     break;
                 case "3":
                     Console.WriteLine("Edit task flow goes here.");
@@ -70,11 +71,65 @@ public class App(TaskService taskService)
         UI.RenderTasks(notDoneTasks, TaskColumns.Id | TaskColumns.Title | TaskColumns.DueDate | TaskColumns.Project);
 
         Console.WriteLine();
-        Console.WriteLine("Done tasks");
-        //UI.RenderTasks(doneTasks, TaskColumns.Id | TaskColumns.Title | TaskColumns.DueDate | TaskColumns.Project);
-        UI.RenderTasks(doneTasksPastThreeDays);
+        Console.WriteLine("Last 3 days completed tasks");
+        UI.RenderTasks(doneTasksPastThreeDays,
+            TaskColumns.Id | TaskColumns.Title | TaskColumns.DueDate | TaskColumns.Project);
 
         Console.WriteLine();
         UserInput.Prompt("Press Enter to return to the menu: ");
+    }
+
+    private void AddTask()
+    {
+        Console.Clear();
+
+        List<TaskItem> sessionTasks = [];
+        while (true)
+        {
+            string? title = PromptValidated("Title: ", DataType.String);
+            if (title is null) break;
+
+            string? project = PromptValidated("Project: ", DataType.String);
+            if (project is null) break;
+
+            string? dueDateString = PromptValidated(
+                "Due Date (yyyy-MM-dd): ",
+                DataType.DateOnly);
+            if (dueDateString is null) break;
+
+            DateOnly dueDate = DateOnly.ParseExact(
+                dueDateString,
+                "yyyy-MM-dd",
+                CultureInfo.InvariantCulture);
+
+            TaskItem task = taskService.AddTask(title, dueDate, project);
+            sessionTasks.Add(task);
+
+            UI.RenderTasks(sessionTasks);
+
+            string input = UserInput.Prompt("Add another? (y/n): ");
+            if (input is "n" or "q") break;
+        }
+    }
+
+    private static string? PromptValidated(string prompt, DataType dataType)
+    {
+        while (true)
+        {
+            string value = UserInput.Prompt(prompt);
+
+            if (value is "q")
+            {
+                return null;
+            }
+
+            string? error = Validate.GetError(dataType, value);
+            if (error is null)
+            {
+                return value;
+            }
+
+            Console.WriteLine(error);
+        }
     }
 }

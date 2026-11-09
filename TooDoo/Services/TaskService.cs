@@ -30,7 +30,7 @@ public class TaskService
         return task;
     }
 
-    private string GenerateUniqueId()
+    public string GenerateUniqueId()
     {
         const string alphabet = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 

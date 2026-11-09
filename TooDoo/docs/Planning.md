@@ -32,7 +32,7 @@
 
 ### 5. Display
 
-- [ ] Due-date coloring (white / green / yellow / red; completed never overdue)
+- [X] Due-date coloring (white / green / yellow / red; completed never overdue)
 - [ ] Keep empty-state message
 
 ### 6. Cleanup and tests

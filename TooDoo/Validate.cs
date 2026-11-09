@@ -23,9 +23,10 @@ public static class Validate
 
     private static bool IsDateOnly(string? input)
     {
-        return DateOnly.TryParse(
+        return DateOnly.TryParseExact(
             input,
-            CultureInfo.CurrentCulture,
+            "yyyy-MM-dd",
+            CultureInfo.InvariantCulture,
             DateTimeStyles.None,
             out _);
     }
