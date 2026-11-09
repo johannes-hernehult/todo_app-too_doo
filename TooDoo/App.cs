@@ -67,11 +67,11 @@ public class App(TaskService taskService)
                 task.DueDate <= today)
             .ToList();
 
-        Console.WriteLine("Tasks to do");
+        UI.RenderHeading("Tasks to do");
         UI.RenderTasks(notDoneTasks, TaskColumns.Id | TaskColumns.Title | TaskColumns.DueDate | TaskColumns.Project);
 
         Console.WriteLine();
-        Console.WriteLine("Last 3 days completed tasks");
+        UI.RenderHeading("Last 3 days completed tasks");
         UI.RenderTasks(doneTasksPastThreeDays,
             TaskColumns.Id | TaskColumns.Title | TaskColumns.DueDate | TaskColumns.Project);
 
@@ -81,55 +81,37 @@ public class App(TaskService taskService)
 
     private void AddTask()
     {
-        Console.Clear();
-
         List<TaskItem> sessionTasks = [];
         while (true)
         {
-            string? title = PromptValidated("Title: ", DataType.String);
+            Console.Clear();
+
+            UI.RenderHeading("Add new task");
+            string? title = UserInput.PromptValidated("Title: ", DataType.String);
             if (title is null) break;
 
-            string? project = PromptValidated("Project: ", DataType.String);
+            Console.Write("Existing projects: ");
+            Console.ForegroundColor = ConsoleColor.DarkBlue;
+            Console.WriteLine($"{TaskItem.RenderProjectNames(taskService.GetTasks())}");            string? project = UserInput.PromptValidated("Project: ", DataType.String);
+            Console.ResetColor();
             if (project is null) break;
 
-            string? dueDateString = PromptValidated(
-                "Due Date (yyyy-MM-dd): ",
-                DataType.DateOnly);
+            string? dueDateString = UserInput.PromptValidated("Due Date (yyyy-MM-dd): ", DataType.DateOnly);
             if (dueDateString is null) break;
 
-            DateOnly dueDate = DateOnly.ParseExact(
-                dueDateString,
-                "yyyy-MM-dd",
-                CultureInfo.InvariantCulture);
+            DateOnly dueDate = DateOnly.ParseExact(dueDateString, "yyyy-MM-dd", CultureInfo.InvariantCulture);
 
             TaskItem task = taskService.AddTask(title, dueDate, project);
             sessionTasks.Add(task);
-
-            UI.RenderTasks(sessionTasks);
-
-            string input = UserInput.Prompt("Add another? (y/n): ");
-            if (input is "n" or "q") break;
-        }
-    }
-
-    private static string? PromptValidated(string prompt, DataType dataType)
-    {
-        while (true)
-        {
-            string value = UserInput.Prompt(prompt);
-
-            if (value is "q")
+            if (sessionTasks.Count() > 0)
             {
-                return null;
+                Console.Clear();
+                UI.RenderHeading("Session Tasks");
+                UI.RenderTasks(sessionTasks, TaskColumns.Title | TaskColumns.DueDate | TaskColumns.Project);
             }
 
-            string? error = Validate.GetError(dataType, value);
-            if (error is null)
-            {
-                return value;
-            }
-
-            Console.WriteLine(error);
+            string input = UserInput.Prompt("Press 'Enter' to add another task ('q' finish): ");
+            if (input is "q") break;
         }
     }
 }

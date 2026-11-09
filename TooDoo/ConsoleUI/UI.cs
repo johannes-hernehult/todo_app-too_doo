@@ -26,6 +26,16 @@ public static class UI
         return UserInput.Prompt("Pick an option: ");
     }
 
+
+    public static void RenderHeading(string title)
+    {
+        Console.ForegroundColor = ConsoleColor.DarkYellow;
+        Console.WriteLine(new string('-', Console.WindowWidth));
+        Console.WriteLine(title);
+        Console.WriteLine(new string('-', Console.WindowWidth));
+        Console.ResetColor();
+    }
+
     public static void RenderList(string title, IReadOnlyList<string> items)
     {
         Console.Clear();

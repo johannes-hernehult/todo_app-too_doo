@@ -62,6 +62,16 @@ public class TaskItem
         Project = null;
     }
 
+    public static string RenderProjectNames(IEnumerable<TaskItem> taskItems)
+    {
+        return string.Join(", ",
+            taskItems
+                .Select(task => task.Project)
+                .Where(project => !string.IsNullOrWhiteSpace(project))
+                .Select(project => project!)
+                .Distinct(StringComparer.OrdinalIgnoreCase));
+    }
+
     public void UpdateStatus(TaskStatus status)
     {
         ValidateStatus(status, nameof(status));
