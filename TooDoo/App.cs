@@ -123,25 +123,16 @@ public class App(TaskService taskService)
     private void AddTask()
     {
         List<TaskItem> sessionTasks = [];
+
         while (true)
         {
             Console.Clear();
-
             UI.RenderHeading("Add new task");
-            string? title = UserInput.PromptValidated("Title: ", DataType.String);
-            if (title is null) break;
 
-            Console.Write("Existing projects: ");
-            Console.ForegroundColor = ConsoleColor.DarkBlue;
-            Console.WriteLine($"{TaskItem.RenderProjectNames(taskService.GetTasks())}");
-            Console.ResetColor();
-            string? project = UserInput.PromptValidated("Project: ", DataType.String);
-            if (project is null) break;
-
-            string? dueDateString = UserInput.PromptValidated("Due Date (yyyy-MM-dd): ", DataType.DateOnly);
-            if (dueDateString is null) break;
-
-            DateOnly dueDate = DateOnly.ParseExact(dueDateString, "yyyy-MM-dd", CultureInfo.InvariantCulture);
+            if (!TryPromptTaskDetails(out string title, out DateOnly dueDate, out string project))
+            {
+                return;
+            }
 
             TaskItem task = taskService.AddTask(title, dueDate, project);
             sessionTasks.Add(task);
@@ -150,9 +141,69 @@ public class App(TaskService taskService)
             UI.RenderHeading("Session Tasks");
             UI.RenderTasks(sessionTasks, TaskColumns.Title | TaskColumns.DueDate | TaskColumns.Project);
 
-
-            string input = UserInput.Prompt("Press 'Enter' to add another task ('q' finish): ");
-            if (input.ToLowerInvariant() is "q") break;
+            if (!ShouldAddAnotherTask())
+            {
+                return;
+            }
         }
+    }
+
+    private bool TryPromptTaskDetails(out string title, out DateOnly dueDate, out string project)
+    {
+        title = string.Empty;
+        dueDate = default;
+        project = string.Empty;
+
+        string? enteredTitle = UserInput.PromptValidated("Title: ", DataType.String);
+        if (enteredTitle is null)
+        {
+            return false;
+        }
+
+        Console.Write("Existing projects: ");
+        Console.ForegroundColor = ConsoleColor.DarkBlue;
+        try
+        {
+            Console.WriteLine(TaskItem.RenderProjectNames(taskService.GetTasks()));
+        }
+        finally
+        {
+            Console.ResetColor();
+        }
+
+        string? enteredProject = UserInput.PromptValidated("Project: ", DataType.String);
+        if (enteredProject is null)
+        {
+            return false;
+        }
+
+        while (true)
+        {
+            string? dateText = UserInput.PromptValidated("Due Date (yyyy-MM-dd): ", DataType.DateOnly);
+            if (dateText is null)
+            {
+                return false;
+            }
+
+            if (DateOnly.TryParseExact(
+                    dateText,
+                    "yyyy-MM-dd",
+                    CultureInfo.InvariantCulture,
+                    DateTimeStyles.None,
+                    out dueDate))
+            {
+                title = enteredTitle;
+                project = enteredProject;
+                return true;
+            }
+
+            Console.WriteLine("Enter a date in yyyy-MM-dd format.");
+        }
+    }
+
+    private static bool ShouldAddAnotherTask()
+    {
+        string input = UserInput.Prompt("Press 'Enter' to add another task ('q' finish): ");
+        return !string.Equals(input.Trim(), "q", StringComparison.OrdinalIgnoreCase);
     }
 }
