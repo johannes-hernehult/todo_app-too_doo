@@ -74,8 +74,8 @@ public class App(TaskService taskService)
 
             Console.WriteLine();
             Console.Write(showDoneTasks
-                ? "Type 'u <taskID>' to mark a task as not done - 't' to show tasks to do - Enter to return: "
-                : "Type 'd <taskID>' to mark a task as done - 't' to show completed tasks - Enter to return: ");
+                ? "Type 'uc <taskID>' to mark a task as un-completed - 't' to show tasks to do - Enter to return: "
+                : "Type 'c <taskID>' to mark a task as completed - 't' to show completed tasks - Enter to return: ");
 
             string? input = Console.ReadLine();
             if (string.IsNullOrWhiteSpace(input))
@@ -96,7 +96,7 @@ public class App(TaskService taskService)
             return;
         }
 
-        string expectedCommand = showDoneTasks ? "u" : "d";
+        string expectedCommand = showDoneTasks ? "uc" : "c";
         if (command.Length == 2 &&
             command[0].Equals(expectedCommand, StringComparison.OrdinalIgnoreCase))
         {
