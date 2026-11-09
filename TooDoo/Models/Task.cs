@@ -1,3 +1,5 @@
+using TooDoo.ConsoleUI;
+
 namespace TooDoo.Models;
 
 public enum TaskStatus
@@ -14,33 +16,94 @@ public class TaskItem
     public string? Project { get; private set; }
     public TaskStatus Status { get; private set; }
 
-    public TaskItem(string id, string title, DateOnly dueDate, string? project,
+    public TaskItem(
+        string id,
+        string title,
+        DateOnly dueDate,
+        string? project,
         TaskStatus status = TaskStatus.NotDone)
     {
+        ValidateRequired(id, nameof(id));
+        ValidateRequired(title, nameof(title));
+        ValidateDueDate(dueDate, nameof(dueDate));
+        ValidateStatus(status, nameof(status));
+
         Id = id;
         Title = title;
         DueDate = dueDate;
-        Project = project;
+        Project = NormalizeProject(project);
         Status = status;
     }
 
     public void UpdateTitle(string title)
     {
-        this.Title = title;
+        ValidateRequired(title, nameof(title));
+        Title = title;
     }
 
     public void UpdateDueDate(DateOnly date)
     {
+        ValidateDueDate(date, nameof(date));
         DueDate = date;
     }
 
-    public void UpdateProject(string? project)
+    public void UpdateProject(string project)
     {
+        if (string.IsNullOrWhiteSpace(project))
+        {
+            throw new ArgumentException("Project name is required.", nameof(project));
+        }
+
         Project = project;
+    }
+
+    public void ClearProject()
+    {
+        Project = null;
     }
 
     public void UpdateStatus(TaskStatus status)
     {
+        ValidateStatus(status, nameof(status));
         Status = status;
+    }
+
+    private static void ValidateRequired(string? value, string parameterName)
+    {
+        string? error = Validate.GetError(DataType.String, value);
+
+        if (error is not null)
+        {
+            throw new ArgumentException(error, parameterName);
+        }
+    }
+
+    private static void ValidateDueDate(DateOnly date, string parameterName)
+    {
+        if (date == default)
+        {
+            throw new ArgumentException("A due date is required.", parameterName);
+        }
+    }
+
+    private static void ValidateStatus(TaskStatus status, string parameterName)
+    {
+        if (!Enum.IsDefined(status))
+        {
+            throw new ArgumentOutOfRangeException(
+                parameterName,
+                status,
+                "The task status is not valid.");
+        }
+    }
+
+    private static string? NormalizeProject(string? project)
+    {
+        if (string.IsNullOrWhiteSpace(project))
+        {
+            return null;
+        }
+
+        return project;
     }
 }
