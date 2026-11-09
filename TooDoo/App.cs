@@ -52,18 +52,20 @@ public class App(TaskService taskService)
     private void ViewTasks()
     {
         bool showDoneTasks = false;
+        var orderedTasks = taskService.GetTasks()
+            .OrderBy(task => task.DueDate)
+            .ThenBy(task => task.Project)
+            .ThenBy(task => task.Title)
+            .ToList();
 
         while (true)
         {
             Console.Clear();
-            var orderedTasks = taskService.GetTasks()
-                .OrderBy(task => task.DueDate)
-                .ThenBy(task => task.Project)
-                .ThenBy(task => task.Title)
-                .ToList();
 
             var visibleTasks = orderedTasks
-                .Where(task => (task.Status == TaskStatus.Done) == showDoneTasks)
+                .Where(task => showDoneTasks
+                    ? task.Status == TaskStatus.Done
+                    : task.Status != TaskStatus.Done)
                 .ToList();
 
             UI.RenderHeading(showDoneTasks ? "Completed tasks" : "Tasks to do");
@@ -72,20 +74,50 @@ public class App(TaskService taskService)
 
             Console.WriteLine();
             Console.Write(showDoneTasks
-                ? "Showing completed tasks. Press 't' to show tasks to do, or Enter to return: "
-                : "Showing tasks to do. Press 't' to show completed tasks, or Enter to return: ");
+                ? "Type 'u <taskID>' to mark a task as not done - 't' to show tasks to do - Enter to return: "
+                : "Type 'd <taskID>' to mark a task as done - 't' to show completed tasks - Enter to return: ");
 
-            ConsoleKey key = Console.ReadKey(intercept: true).Key;
-            if (key == ConsoleKey.Enter)
+            string? input = Console.ReadLine();
+            if (string.IsNullOrWhiteSpace(input))
             {
                 return;
             }
 
-            if (key == ConsoleKey.T)
-            {
-                showDoneTasks = !showDoneTasks;
-            }
+            ProcessTaskCommand(input, visibleTasks, ref showDoneTasks);
         }
+    }
+
+    private void ProcessTaskCommand(string input, List<TaskItem> visibleTasks, ref bool showDoneTasks)
+    {
+        string[] command = input.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        if (command.Length == 1 && command[0].Equals("t", StringComparison.OrdinalIgnoreCase))
+        {
+            showDoneTasks = !showDoneTasks;
+            return;
+        }
+
+        string expectedCommand = showDoneTasks ? "u" : "d";
+        if (command.Length == 2 &&
+            command[0].Equals(expectedCommand, StringComparison.OrdinalIgnoreCase))
+        {
+            TaskItem? task = visibleTasks.FirstOrDefault(task =>
+                task.Id.Equals(command[1], StringComparison.OrdinalIgnoreCase));
+
+            if (task is not null)
+            {
+                task.UpdateStatus(showDoneTasks ? TaskStatus.NotDone : TaskStatus.Done);
+                return;
+            }
+
+            Console.WriteLine("That task ID is not in the current list.");
+        }
+        else
+        {
+            Console.WriteLine($"Enter '{expectedCommand} <taskID>' - 't' - press Enter to return.");
+        }
+
+        Console.WriteLine("Press any key to continue.");
+        Console.ReadKey(intercept: true);
     }
 
     private void AddTask()
