@@ -3,13 +3,21 @@ using TooDoo.ConsoleUI;
 
 namespace TooDoo;
 
-public class App(TaskService taskService, UserInput userInput)
+public class App(TaskService taskService)
 {
+    private List<string> _menuItems = new List<string>
+    {
+        "(1) Show tasks",
+        "(2) Add new task",
+        "(3) Edit tasks",
+        "(0) Save and quit",
+    };
+
     public void Run()
     {
         while (true)
         {
-            string choice = RenderMainMenu();
+            string choice = UI.RenderMenu("TooDoo", _menuItems);
 
             switch (choice)
             {
@@ -35,27 +43,11 @@ public class App(TaskService taskService, UserInput userInput)
         }
     }
 
-    private string RenderMainMenu()
-    {
-        IReadOnlyList<string> menuItems = new List<string>()
-        {
-            "(1) Show tasks",
-            "(2) Add new task",
-            "(3) Edit tasks",
-            "(0) Save and quit",
-        };
-
-
-        Console.Clear();
-        UI.RenderMenu("Main Menu", menuItems);
-
-        return userInput.Prompt("Pick an option: ");
-    }
 
     private void ViewTasks()
     {
         Console.Clear();
         Console.WriteLine("Tasks");
-        userInput.Prompt("Press Enter to return to the menu: ");
+        UserInput.Prompt("Press Enter to return to the menu: ");
     }
 }

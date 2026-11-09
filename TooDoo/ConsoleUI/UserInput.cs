@@ -1,8 +1,8 @@
 namespace TooDoo.ConsoleUI;
 
-public class UserInput
+public static class UserInput
 {
-    public string Prompt(string prompt)
+    public static string Prompt(string prompt)
     {
         Console.ForegroundColor = ConsoleColor.Gray;
         Console.Write(prompt);
