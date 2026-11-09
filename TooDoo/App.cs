@@ -92,8 +92,9 @@ public class App(TaskService taskService)
 
             Console.Write("Existing projects: ");
             Console.ForegroundColor = ConsoleColor.DarkBlue;
-            Console.WriteLine($"{TaskItem.RenderProjectNames(taskService.GetTasks())}");            string? project = UserInput.PromptValidated("Project: ", DataType.String);
+            Console.WriteLine($"{TaskItem.RenderProjectNames(taskService.GetTasks())}");
             Console.ResetColor();
+            string? project = UserInput.PromptValidated("Project: ", DataType.String);
             if (project is null) break;
 
             string? dueDateString = UserInput.PromptValidated("Due Date (yyyy-MM-dd): ", DataType.DateOnly);
@@ -103,15 +104,14 @@ public class App(TaskService taskService)
 
             TaskItem task = taskService.AddTask(title, dueDate, project);
             sessionTasks.Add(task);
-            if (sessionTasks.Count() > 0)
-            {
-                Console.Clear();
-                UI.RenderHeading("Session Tasks");
-                UI.RenderTasks(sessionTasks, TaskColumns.Title | TaskColumns.DueDate | TaskColumns.Project);
-            }
+
+            Console.Clear();
+            UI.RenderHeading("Session Tasks");
+            UI.RenderTasks(sessionTasks, TaskColumns.Title | TaskColumns.DueDate | TaskColumns.Project);
+
 
             string input = UserInput.Prompt("Press 'Enter' to add another task ('q' finish): ");
-            if (input is "q") break;
+            if (input.ToLowerInvariant() is "q") break;
         }
     }
 }
