@@ -1,19 +1,20 @@
 using TooDoo.Services;
+using TooDoo.ConsoleUI;
 
 namespace TooDoo;
 
-public class App(TaskManager taskManager, UserInput userInput)
+public class App(TaskService taskService, UserInput userInput)
 {
     public void Run()
     {
         while (true)
         {
-            string choice = ShowMainMenu();
+            string choice = RenderMainMenu();
 
             switch (choice)
             {
                 case "1":
-                    ShowTasks();
+                    ViewTasks();
                     break;
                 case "2":
                     Console.WriteLine("Add task flow goes here.");
@@ -34,14 +35,14 @@ public class App(TaskManager taskManager, UserInput userInput)
         }
     }
 
-    private string ShowMainMenu()
+    private string RenderMainMenu()
     {
         IReadOnlyList<string> menuItems = new List<string>()
         {
             "(1) Show tasks",
             "(2) Add new task",
             "(3) Edit tasks",
-            "(4) Save and quit",
+            "(0) Save and quit",
         };
 
 
@@ -51,7 +52,7 @@ public class App(TaskManager taskManager, UserInput userInput)
         return userInput.ReadNormalizedString("Pick an option: ");
     }
 
-    private void ShowTasks()
+    private void ViewTasks()
     {
         Console.Clear();
         Console.WriteLine("Tasks");

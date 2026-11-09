@@ -1,6 +1,6 @@
 namespace TooDoo.Services;
 
-public class TaskManager
+public class TaskService
 {
     private readonly List<Task> _tasks = new List<Task>();
 }

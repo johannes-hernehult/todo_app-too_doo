@@ -1,6 +1,6 @@
 namespace TooDoo.Services;
 
-public class FileStorage
+public class FileService
 {
     
 }

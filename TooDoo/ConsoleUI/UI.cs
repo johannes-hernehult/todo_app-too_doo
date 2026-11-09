@@ -1,4 +1,4 @@
-namespace TooDoo;
+namespace TooDoo.ConsoleUI;
 
 public static class UI
 {
