@@ -51,32 +51,41 @@ public class App(TaskService taskService)
 
     private void ViewTasks()
     {
-        Console.Clear();
-        DateOnly today = DateOnly.FromDateTime(DateTime.Today);
-        DateOnly startDate = today.AddDays(-2);
-        var tasks = taskService.GetTasks();
+        bool showDoneTasks = false;
 
-        var orderedTasks = tasks.OrderBy(task => task.DueDate).ThenBy(task => task.Project).ThenBy(task => task.Title)
-            .ToList();
+        while (true)
+        {
+            Console.Clear();
+            var orderedTasks = taskService.GetTasks()
+                .OrderBy(task => task.DueDate)
+                .ThenBy(task => task.Project)
+                .ThenBy(task => task.Title)
+                .ToList();
 
-        var notDoneTasks = orderedTasks.Where(task => task.Status == TaskStatus.NotDone).ToList();
-        var doneTasksPastThreeDays = orderedTasks
-            .Where(task =>
-                task.Status == TaskStatus.Done &&
-                task.DueDate >= startDate &&
-                task.DueDate <= today)
-            .ToList();
+            var visibleTasks = orderedTasks
+                .Where(task => (task.Status == TaskStatus.Done) == showDoneTasks)
+                .ToList();
 
-        UI.RenderHeading("Tasks to do");
-        UI.RenderTasks(notDoneTasks, TaskColumns.Id | TaskColumns.Title | TaskColumns.DueDate | TaskColumns.Project);
+            UI.RenderHeading(showDoneTasks ? "Completed tasks" : "Tasks to do");
+            UI.RenderTasks(visibleTasks,
+                TaskColumns.Id | TaskColumns.Title | TaskColumns.DueDate | TaskColumns.Project);
 
-        Console.WriteLine();
-        UI.RenderHeading("Last 3 days completed tasks");
-        UI.RenderTasks(doneTasksPastThreeDays,
-            TaskColumns.Id | TaskColumns.Title | TaskColumns.DueDate | TaskColumns.Project);
+            Console.WriteLine();
+            Console.Write(showDoneTasks
+                ? "Showing completed tasks. Press 't' to show tasks to do, or Enter to return: "
+                : "Showing tasks to do. Press 't' to show completed tasks, or Enter to return: ");
 
-        Console.WriteLine();
-        UserInput.Prompt("Press Enter to return to the menu: ");
+            ConsoleKey key = Console.ReadKey(intercept: true).Key;
+            if (key == ConsoleKey.Enter)
+            {
+                return;
+            }
+
+            if (key == ConsoleKey.T)
+            {
+                showDoneTasks = !showDoneTasks;
+            }
+        }
     }
 
     private void AddTask()
