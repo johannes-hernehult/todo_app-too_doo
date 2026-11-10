@@ -1,25 +1,30 @@
-﻿using TooDoo;
+﻿using System.Text.Json;
+using TooDoo;
 using TooDoo.Services;
-using TaskStatus = TooDoo.Models.TaskStatus;
 
 Console.WriteLine("TooDoo - Your personal todo console app");
 
+var projectDirectory = Path.GetFullPath(
+    Path.Combine(AppContext.BaseDirectory, "..", "..", ".."));
+var dataFilePath = Path.Combine(projectDirectory, "Data", "tasks.json");
+
 var taskManager = new TaskService();
+var fileService = new FileService();
+try
+{
+    var savedTasks = await fileService.LoadAsync(dataFilePath);
 
-var today = DateOnly.FromDateTime(DateTime.Today);
+    if (savedTasks is not null)
+    {
+        taskManager.ReplaceTasks(savedTasks);
+    }
+}
+catch (Exception ex) when (
+    ex is JsonException or IOException or UnauthorizedAccessException)
+{
+    Console.WriteLine($"Could not load saved tasks: {ex.Message}");
+    Console.WriteLine("Starting with an empty task list.");
+}
 
-
-taskManager.AddTask("Audit test coverage, with long ass title to showcase how it handles this..", today.AddDays(-1), "Testing", TaskStatus.Done);
-taskManager.AddTask("Build regression suite", today, "Testing");
-taskManager.AddTask("Document test setup", today.AddDays(7), "Testing");
-
-taskManager.AddTask("Implement landing page", today.AddDays(-5), "Website");
-taskManager.AddTask("Optimize page loading", today.AddDays(-1), "Website");
-taskManager.AddTask("Review accessibility", today.AddDays(-2), "Website", TaskStatus.Done);
-
-taskManager.AddTask("Clean out workspace", today.AddDays(-1), "Personal", TaskStatus.Done);
-taskManager.AddTask("Plan weekly meals", today.AddDays(5), "Personal");
-taskManager.AddTask("Schedule dentist visit", today.AddDays(14), "Personal");
-
-var app = new App(taskManager);
-app.Run();
+var app = new App(taskManager, fileService, dataFilePath);
+await app.RunAsync();

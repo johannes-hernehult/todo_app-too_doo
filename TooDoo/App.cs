@@ -4,7 +4,10 @@ using TooDoo.Views;
 
 namespace TooDoo;
 
-public class App(TaskService taskService)
+public class App(
+    TaskService taskService,
+    FileService fileService,
+    string dataFilePath)
 {
     private readonly List<string> _menuItems =
     [
@@ -14,7 +17,7 @@ public class App(TaskService taskService)
         "(q) Quit"
     ];
 
-    public void Run()
+    public async Task RunAsync()
     {
         while (true)
         {
@@ -32,10 +35,18 @@ public class App(TaskService taskService)
                     new EditTaskView(taskService).Show();
                     break;
                 case "q":
-                    // Save tasks here when persistence is implemented.
-                    Console.Clear();
-                    Console.WriteLine("Ok, bye!");
+                    try
+                    {
+                        await fileService.SaveAsync(dataFilePath, taskService.GetTasks());
+                        Console.WriteLine("Tasks saved.");
+                    }
+                    catch (Exception ex) when (
+                        ex is IOException or UnauthorizedAccessException)
+                    {
+                        Console.WriteLine($"Could not save tasks: {ex.Message}");
+                    }
 
+                    Console.WriteLine("Ok, bye!");
                     return;
                 default:
                     Console.WriteLine("Choose 1, 2, 3, or q to quit.");

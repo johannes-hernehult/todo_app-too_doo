@@ -13,6 +13,28 @@ public class TaskService
         return _tasks.AsReadOnly();
     }
 
+    public void ReplaceTasks(IEnumerable<TaskItem> tasks)
+    {
+        ArgumentNullException.ThrowIfNull(tasks);
+
+        var loadedTasks = tasks.ToList();
+
+        if (loadedTasks.Any(task => task is null))
+        {
+            throw new ArgumentException("The task list contains a null task.", nameof(tasks));
+        }
+
+        if (loadedTasks.Select(task => task.Id)
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .Count() != loadedTasks.Count)
+        {
+            throw new ArgumentException("The task list contains duplicate IDs.", nameof(tasks));
+        }
+
+        _tasks.Clear();
+        _tasks.AddRange(loadedTasks);
+    }
+
     public TaskItem AddTask(
         string title,
         DateOnly dueDate,
