@@ -1,30 +1,78 @@
 # TooDoo
 
-TooDoo is a command-line to-do list application built with C# and .NET 10. It is designed to help users manage tasks by title, due date, status, and project.
+A simple console-based task manager for keeping track of tasks, due dates, and projects. TooDoo lets you add and edit tasks, mark them complete, and view them sorted by due date or project.
+
+## Tech Stack
+
+* **C# 14**
+* **.NET 10**
+* Console application
+* JSON file storage using `System.Text.Json`
 
 ## Features
 
-- Add, edit, complete, and delete tasks
-- View tasks sorted by due date or project
-- Save tasks to a JSON file and load them when the app starts
-- Use the application through a text-based menu
+* **View tasks**, including completed and incomplete tasks
+* **Add tasks** with a title, due date, and optional project
+* **Edit and delete** tasks
+* **Mark tasks** complete or incomplete
+* **Sort tasks** by due date or project
+* **Assign short, readable IDs** to tasks
+* **Save task data** as JSON between runs
+* **Migrate existing task data** from the older project-local location
+* **Preserve damaged data** by moving an unreadable file aside before starting with an empty list
 
-## Run the application
+## Folder Structure
 
-From the project directory, run:
-``` bash dotnet run ```
+```text
+TooDoo/
+├── App.cs
+├── Program.cs
+├── TooDoo.csproj
+├── ConsoleUI/
+│   ├── Colors.cs
+│   ├── ConsoleFormats.cs
+│   ├── ConsoleMenu.cs
+│   ├── Prompts.cs
+│   └── TaskTableRenderer.cs
+├── Data/
+│   └── tasks.json
+├── Models/
+│   ├── TaskDetails.cs
+│   ├── TaskItem.cs
+│   └── TaskSortOrder.cs
+├── Services/
+│   ├── StorageLocation.cs
+│   ├── TaskRepository.cs
+│   └── TaskService.cs
+└── Views/
+    ├── AddTaskView.cs
+    ├── EditTasksView.cs
+    ├── ShowTasksView.cs
+    ├── TaskDetailsPrompt.cs
+    └── TaskListView.cs
+```
 
-## Project structure
+## How to Run
 
-- `Models/` — Task-related data types
-- `Services/` — Task management and file storage
-- `App.cs` — Application flow and menu coordination
-- `Program.cs` — Application entry point
+### Requirements
+* **.NET 10 SDK**
 
-## Requirements
+### Execution Commands
 
-- .NET 10 SDK
+From the repository root, run:
 
-## License
+```bash
+dotnet run --project "TooDoo/TooDoo.csproj"
+```
 
-No license has been specified.
+If the repository root is already the `TooDoo` project directory, run:
+
+```bash
+dotnet run
+```
+
+> **Note:** On first launch, TooDoo starts with an empty task list if no saved data exists. Tasks are stored as JSON in the user's application-data directory.
+
+## Screenshots
+
+*(Add your screenshots here)*
