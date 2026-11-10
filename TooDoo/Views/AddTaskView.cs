@@ -1,125 +1,60 @@
-using System.Globalization;
 using TooDoo.ConsoleUI;
 using TooDoo.Models;
 using TooDoo.Services;
 
 namespace TooDoo.Views;
 
-public class AddTaskView
+public class AddTaskView(TaskService taskService)
 {
-    private readonly TaskService _taskService;
-
-    public AddTaskView(TaskService taskService)
+    public async Task ShowAsync()
     {
-        _taskService = taskService;
-    }
-
-    public void Show()
-    {
-        List<TaskItem> sessionTasks = [];
+        List<TaskItem> addedTasks = [];
 
         while (true)
         {
             Console.Clear();
-            UI.RenderHeading("Add new task");
+            ConsoleMenu.WriteHeading("Add task");
 
-            // Move your existing TryPromptTaskDetails method into this class.
-            if (!TryPromptTaskDetails(
-                    out string title,
-                    out DateOnly dueDate,
-                    out string project))
+            if (!TaskDetailsPrompt.TryAsk(taskService.GetProjectNames(), existingTask: null, out TaskDetails? details))
             {
                 return;
             }
 
-            TaskItem task = _taskService.AddTask(title, dueDate, project);
-            sessionTasks.Add(task);
+            addedTasks.Add(await taskService.AddAsync(details));
 
             Console.Clear();
-            UI.RenderHeading("Session Tasks");
-            UI.RenderTasks(
-                sessionTasks,
-                TaskColumns.Title | TaskColumns.DueDate | TaskColumns.Project);
+            ConsoleMenu.WriteHeading("Added this session");
+            TaskTableRenderer.Render(
+                addedTasks,
+                TaskColumns.Title | TaskColumns.DueDate | TaskColumns.Project,
+                emptyMessage: "No tasks added yet.");
+            Console.WriteLine();
 
-            // Move your existing ShouldAddAnotherTask method into this class.
-            if (!ShouldAddAnotherTask())
+            if (!AskToAddAnother())
             {
                 return;
             }
         }
     }
 
-    private bool TryPromptTaskDetails(out string title, out DateOnly dueDate, out string project)
-    {
-        title = string.Empty;
-        dueDate = default;
-        project = string.Empty;
-
-        string? enteredTitle = UserInput.PromptValidated("Title: ", DataType.String);
-        if (enteredTitle is null)
-        {
-            return false;
-        }
-
-        Console.Write("Existing projects: ");
-        Console.ForegroundColor = ConsoleColor.DarkBlue;
-        try
-        {
-            Console.WriteLine(TaskItem.RenderProjectNames(_taskService.GetTasks()));
-        }
-        finally
-        {
-            Console.ResetColor();
-        }
-
-        string? enteredProject = UserInput.PromptValidated("Project: ", DataType.String);
-        if (enteredProject is null)
-        {
-            return false;
-        }
-
-        while (true)
-        {
-            string? dateText = UserInput.PromptValidated("Due Date (yyyy-MM-dd): ", DataType.DateOnly);
-            if (dateText is null)
-            {
-                return false;
-            }
-
-            if (DateOnly.TryParseExact(
-                    dateText,
-                    "yyyy-MM-dd",
-                    CultureInfo.InvariantCulture,
-                    DateTimeStyles.None,
-                    out dueDate))
-            {
-                title = enteredTitle;
-                project = enteredProject;
-                return true;
-            }
-
-            Console.WriteLine("Enter a date in yyyy-MM-dd format.");
-        }
-    }
-
-    private static bool ShouldAddAnotherTask()
+    private static bool AskToAddAnother()
     {
         while (true)
         {
-            string input = UserInput.Prompt(
-                "Type 'a' to add another task or 'q' to return: ");
+            string input = Prompts.ReadLine("Add another task? (a to add, q to go back): ")
+                .ToLowerInvariant();
 
-            if (input.Equals("q", StringComparison.OrdinalIgnoreCase))
-            {
-                return false;
-            }
-
-            if (input.Equals("a", StringComparison.OrdinalIgnoreCase))
+            if (input is "a")
             {
                 return true;
             }
 
-            Console.WriteLine("Enter 'a' to add another task or 'q' to return.");
+            if (input is "q")
+            {
+                return false;
+            }
+
+            Prompts.ShowError("Enter 'a' to add another task or 'q' to go back.");
         }
     }
 }

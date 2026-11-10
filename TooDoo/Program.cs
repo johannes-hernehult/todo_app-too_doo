@@ -1,30 +1,59 @@
-﻿using System.Text.Json;
 using TooDoo;
+using TooDoo.ConsoleUI;
 using TooDoo.Services;
 
-Console.WriteLine("TooDoo - Your personal todo console app");
+string dataFilePath = StorageLocation.GetDataFilePath();
+var repository = new TaskRepository(dataFilePath);
+var taskService = new TaskService(repository);
 
-var projectDirectory = Path.GetFullPath(
-    Path.Combine(AppContext.BaseDirectory, "..", "..", ".."));
-var dataFilePath = Path.Combine(projectDirectory, "Data", "tasks.json");
-
-var taskManager = new TaskService();
-var fileService = new FileService();
-try
+if (!await TryLoadTasksAsync())
 {
-    var savedTasks = await fileService.LoadAsync(dataFilePath);
+    Environment.ExitCode = 1;
+    return;
+}
 
-    if (savedTasks is not null)
+await new App(taskService).RunAsync();
+
+async Task<bool> TryLoadTasksAsync()
+{
+    try
     {
-        taskManager.ReplaceTasks(savedTasks);
+        StorageLocation.MigrateLegacyFile(dataFilePath);
+        await taskService.LoadAsync();
+        return true;
+    }
+    catch (InvalidDataException ex)
+    {
+        return TryStartWithEmptyList(ex);
+    }
+    catch (Exception ex) when (TaskRepository.IsStorageError(ex))
+    {
+        ReportStartupFailure(ex);
+        return false;
     }
 }
-catch (Exception ex) when (
-    ex is JsonException or IOException or UnauthorizedAccessException)
+
+// A corrupt file is moved aside (never overwritten) so the user can recover it.
+bool TryStartWithEmptyList(InvalidDataException problem)
 {
-    Console.WriteLine($"Could not load saved tasks: {ex.Message}");
-    Console.WriteLine("Starting with an empty task list.");
+    try
+    {
+        string backupPath = repository.BackUpUnreadableFile();
+        Prompts.Pause(
+            $"{problem.Message}{Environment.NewLine}" +
+            $"The file was moved to: {backupPath}{Environment.NewLine}" +
+            "Starting with an empty task list.");
+        return true;
+    }
+    catch (Exception ex) when (TaskRepository.IsStorageError(ex))
+    {
+        ReportStartupFailure(ex);
+        return false;
+    }
 }
 
-var app = new App(taskManager, fileService, dataFilePath);
-await app.RunAsync();
+void ReportStartupFailure(Exception exception)
+{
+    Console.WriteLine($"Could not read the task file at {dataFilePath}: {exception.Message}");
+    Console.WriteLine("Your data was not changed. Fix the problem and start TooDoo again.");
+}

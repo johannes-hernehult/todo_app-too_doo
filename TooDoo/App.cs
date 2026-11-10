@@ -1,15 +1,12 @@
-using TooDoo.Services;
 using TooDoo.ConsoleUI;
+using TooDoo.Services;
 using TooDoo.Views;
 
 namespace TooDoo;
 
-public class App(
-    TaskService taskService,
-    FileService fileService,
-    string dataFilePath)
+public class App(TaskService taskService)
 {
-    private readonly List<string> _menuItems =
+    private static readonly string[] MenuItems =
     [
         "(1) Show tasks",
         "(2) Add new task",
@@ -19,40 +16,49 @@ public class App(
 
     public async Task RunAsync()
     {
+        taskService.SaveFailed += ReportSaveFailure;
+
         while (true)
         {
-            string choice = UI.RenderMenu("TooDoo", _menuItems);
-
-            switch (choice)
+            switch (ConsoleMenu.Show("TooDoo", MenuItems, BuildTaskSummary()))
             {
                 case "1":
-                    new ViewTasksView(taskService).Show();
+                    await new ShowTasksView(taskService).ShowAsync();
                     break;
                 case "2":
-                    new AddTaskView(taskService).Show();
+                    await new AddTaskView(taskService).ShowAsync();
                     break;
                 case "3":
-                    new EditTaskView(taskService).Show();
+                    await new EditTasksView(taskService).ShowAsync();
                     break;
                 case "q":
-                    try
-                    {
-                        await fileService.SaveAsync(dataFilePath, taskService.GetTasks());
-                        Console.WriteLine("Tasks saved.");
-                    }
-                    catch (Exception ex) when (
-                        ex is IOException or UnauthorizedAccessException)
-                    {
-                        Console.WriteLine($"Could not save tasks: {ex.Message}");
-                    }
-
+                    await taskService.SaveIfNeededAsync();
                     Console.WriteLine("Ok, bye!");
                     return;
                 default:
-                    Console.WriteLine("Choose 1, 2, 3, or q to quit.");
-                    Console.ReadKey();
+                    Prompts.Pause("Invalid choice. Enter 1, 2, 3, or q.");
                     break;
             }
         }
+    }
+
+    private string BuildTaskSummary()
+    {
+        int total = taskService.TotalCount;
+
+        if (total == 0)
+        {
+            return "You have no tasks yet.";
+        }
+
+        string noun = total == 1 ? "task" : "tasks";
+        return $"You have {total} {noun} in total, {taskService.DoneCount} done.";
+    }
+
+    private static void ReportSaveFailure(string reason)
+    {
+        Prompts.Pause(
+            $"Could not save your tasks: {reason}{Environment.NewLine}" +
+            "Your changes are kept for this session. TooDoo will try again after the next change.");
     }
 }

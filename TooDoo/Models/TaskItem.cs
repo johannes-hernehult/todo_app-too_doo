@@ -1,119 +1,62 @@
-using TooDoo.ConsoleUI;
-
 namespace TooDoo.Models;
 
-public enum TaskStatus
+public sealed class TaskItem
 {
-    Done,
-    NotDone
-}
-
-public class TaskItem
-{
-    public string Id { get; }
-    public string Title { get; private set; }
-    public DateOnly DueDate { get; private set; }
-    public string? Project { get; private set; }
-    public TaskStatus Status { get; private set; }
-
     public TaskItem(
         string id,
         string title,
         DateOnly dueDate,
-        string? project,
-        TaskStatus status = TaskStatus.NotDone)
+        string? project = null,
+        bool isDone = false)
     {
-        ValidateString(id, nameof(id));
-        ValidateString(title, nameof(title));
-        ValidateDueDate(dueDate, nameof(dueDate));
-        ValidateStatus(status, nameof(status));
+        Id = RequireText(id, nameof(id));
+        Title = RequireText(title, nameof(title));
+        DueDate = RequireDueDate(dueDate);
+        Project = NormalizeProject(project);
+        IsDone = isDone;
+    }
 
-        Id = id;
+    public string Id { get; }
+    public string Title { get; private set; }
+    public DateOnly DueDate { get; private set; }
+    public string? Project { get; private set; }
+    public bool IsDone { get; private set; }
+
+    public void Update(TaskDetails details)
+    {
+        // Validate everything first so a bad value never leaves the task half-updated.
+        string title = RequireText(details.Title, nameof(details.Title));
+        DateOnly dueDate = RequireDueDate(details.DueDate);
+
         Title = title;
         DueDate = dueDate;
-        Project = NormalizeProject(project);
-        Status = status;
+        Project = NormalizeProject(details.Project);
     }
 
-    public void UpdateTitle(string title)
-    {
-        ValidateString(title, nameof(title));
-        Title = title;
-    }
+    public void ToggleDone() => IsDone = !IsDone;
 
-    public void UpdateDueDate(DateOnly date)
+    private static string RequireText(string? value, string name)
     {
-        ValidateDueDate(date, nameof(date));
-        DueDate = date;
-    }
-
-    public void UpdateProject(string project)
-    {
-        if (string.IsNullOrWhiteSpace(project))
+        if (string.IsNullOrWhiteSpace(value))
         {
-            throw new ArgumentException("Project name is required.", nameof(project));
+            throw new ArgumentException($"The {name} can't be empty.");
         }
 
-        Project = project;
+        return value.Trim();
     }
 
-    public void ClearProject()
+    private static DateOnly RequireDueDate(DateOnly dueDate)
     {
-        Project = null;
-    }
-
-    public static string RenderProjectNames(IEnumerable<TaskItem> taskItems)
-    {
-        return string.Join(", ",
-            taskItems
-                .Select(task => task.Project)
-                .Where(project => !string.IsNullOrWhiteSpace(project))
-                .Select(project => project!)
-                .Distinct(StringComparer.OrdinalIgnoreCase));
-    }
-
-    public void UpdateStatus(TaskStatus status)
-    {
-        ValidateStatus(status, nameof(status));
-        Status = status;
-    }
-
-    private static void ValidateString(string? value, string parameterName)
-    {
-        string? error = Validate.GetError(DataType.String, value);
-
-        if (error is not null)
+        if (dueDate == default)
         {
-            throw new ArgumentException(error, parameterName);
+            throw new ArgumentException("A due date is required.");
         }
-    }
 
-    private static void ValidateDueDate(DateOnly date, string parameterName)
-    {
-        if (date == default)
-        {
-            throw new ArgumentException("A due date is required.", parameterName);
-        }
-    }
-
-    private static void ValidateStatus(TaskStatus status, string parameterName)
-    {
-        if (!Enum.IsDefined(status))
-        {
-            throw new ArgumentOutOfRangeException(
-                parameterName,
-                status,
-                "The task status is not valid.");
-        }
+        return dueDate;
     }
 
     private static string? NormalizeProject(string? project)
     {
-        if (string.IsNullOrWhiteSpace(project))
-        {
-            return null;
-        }
-
-        return project;
+        return string.IsNullOrWhiteSpace(project) ? null : project.Trim();
     }
 }
