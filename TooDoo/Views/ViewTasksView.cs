@@ -42,13 +42,17 @@ public class ViewTasksView
 
             Console.WriteLine();
             Console.Write(
-                "Type 'toggle <taskID>' to change status, 'view' to switch lists, " +
-                "'o' to change order, or press Enter to return: ");
+                "Type 'toggle <taskID>', 'view' to switch view, 'o' to change order, or 'q' to return: ");
 
             string? input = Console.ReadLine();
-            if (string.IsNullOrWhiteSpace(input))
+            if (string.Equals(input?.Trim(), "q", StringComparison.OrdinalIgnoreCase))
             {
                 return;
+            }
+
+            if (string.IsNullOrWhiteSpace(input))
+            {
+                continue;
             }
 
             ProcessTaskCommand(input, visibleTasks, ref showDoneTasks, ref sortByProject);

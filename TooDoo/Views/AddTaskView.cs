@@ -104,7 +104,22 @@ public class AddTaskView
 
     private static bool ShouldAddAnotherTask()
     {
-        string input = UserInput.Prompt("Press 'Enter' to add another task ('q' finish): ");
-        return !string.Equals(input.Trim(), "q", StringComparison.OrdinalIgnoreCase);
+        while (true)
+        {
+            string input = UserInput.Prompt(
+                "Type 'a' to add another task or 'q' to return: ");
+
+            if (input.Equals("q", StringComparison.OrdinalIgnoreCase))
+            {
+                return false;
+            }
+
+            if (input.Equals("a", StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+
+            Console.WriteLine("Enter 'a' to add another task or 'q' to return.");
+        }
     }
 }

@@ -23,7 +23,7 @@ public static class UI
         Console.Clear();
         UI.RenderList(title, items);
 
-        return UserInput.Prompt("Pick an option: ");
+        return UserInput.Prompt("Pick an option (q to quit): ");
     }
 
 

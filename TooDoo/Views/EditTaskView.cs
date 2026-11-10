@@ -39,12 +39,17 @@ public class EditTaskView
 
             Console.WriteLine();
             Console.Write(
-                "Use 'edit <taskID>', 'delete <taskID>', 'toggle <taskID>', or 'view'; press Enter to return: ");
+                "Use 'edit <taskID>', 'delete <taskID>', 'toggle <taskID>', 'view', or 'q' to return: ");
 
             string? input = Console.ReadLine();
-            if (string.IsNullOrWhiteSpace(input))
+            if (string.Equals(input?.Trim(), "q", StringComparison.OrdinalIgnoreCase))
             {
                 return;
+            }
+
+            if (string.IsNullOrWhiteSpace(input))
+            {
+                continue;
             }
 
             ProcessCommand(input, visibleTasks, ref showDoneTasks);
