@@ -29,8 +29,7 @@ public class App(TaskService taskService)
                     new AddTaskView(taskService).Show();
                     break;
                 case "3":
-                    Console.WriteLine("Edit task flow goes here.");
-                    Console.ReadKey();
+                    new EditTaskView(taskService).Show();
                     break;
                 case "0":
                     // Save tasks here when persistence is implemented.

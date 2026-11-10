@@ -30,6 +30,14 @@ public class TaskService
         return task;
     }
 
+    public bool DeleteTask(string id)
+    {
+        TaskItem? task = _tasks.FirstOrDefault(existingTask =>
+            existingTask.Id.Equals(id, StringComparison.OrdinalIgnoreCase));
+
+        return task is not null && _tasks.Remove(task);
+    }
+
     private string GenerateUniqueId()
     {
         const string alphabet = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
