@@ -73,9 +73,8 @@ public class App(TaskService taskService)
                 TaskColumns.Id | TaskColumns.Title | TaskColumns.DueDate | TaskColumns.Project);
 
             Console.WriteLine();
-            Console.Write(showDoneTasks
-                ? "Type 'uc <taskID>' to mark a task as un-completed - 't' to show tasks to do - Enter to return: "
-                : "Type 'c <taskID>' to mark a task as completed - 't' to show completed tasks - Enter to return: ");
+            Console.Write(
+                "Type 'toggle <taskID>' to change a task's status - 'view' to switch lists - Enter to return: ");
 
             string? input = Console.ReadLine();
             if (string.IsNullOrWhiteSpace(input))
@@ -90,22 +89,24 @@ public class App(TaskService taskService)
     private void ProcessTaskCommand(string input, List<TaskItem> visibleTasks, ref bool showDoneTasks)
     {
         string[] command = input.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-        if (command.Length == 1 && command[0].Equals("t", StringComparison.OrdinalIgnoreCase))
+
+        if (command.Length == 1 && command[0].Equals("view", StringComparison.OrdinalIgnoreCase))
         {
             showDoneTasks = !showDoneTasks;
             return;
         }
 
-        string expectedCommand = showDoneTasks ? "uc" : "c";
-        if (command.Length == 2 &&
-            command[0].Equals(expectedCommand, StringComparison.OrdinalIgnoreCase))
+        if (command.Length == 2 && command[0].Equals("toggle", StringComparison.OrdinalIgnoreCase))
         {
             TaskItem? task = visibleTasks.FirstOrDefault(task =>
                 task.Id.Equals(command[1], StringComparison.OrdinalIgnoreCase));
 
             if (task is not null)
             {
-                task.UpdateStatus(showDoneTasks ? TaskStatus.NotDone : TaskStatus.Done);
+                TaskStatus newStatus = task.Status == TaskStatus.Done
+                    ? TaskStatus.NotDone
+                    : TaskStatus.Done;
+                task.UpdateStatus(newStatus);
                 return;
             }
 
@@ -113,7 +114,7 @@ public class App(TaskService taskService)
         }
         else
         {
-            Console.WriteLine($"Enter '{expectedCommand} <taskID>' - 't' - press Enter to return.");
+            Console.WriteLine("Enter 'toggle <taskID>' or 'view'; press Enter to return.");
         }
 
         Console.WriteLine("Press any key to continue.");
