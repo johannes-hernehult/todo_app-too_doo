@@ -1,78 +1,85 @@
 # TooDoo
 
-A simple console-based task manager for keeping track of tasks, due dates, and projects. TooDoo lets you add and edit tasks, mark them complete, and view them sorted by due date or project.
+A clean, console-based task management application written in C# and .NET. TooDoo enables users to track, organize, and persistent-store daily tasks through an intuitive terminal interface.
 
-## Tech Stack
+---
 
-* **C# 14**
-* **.NET 10**
-* Console application
-* JSON file storage using `System.Text.Json`
+## 📌 Features & Purpose
 
-## Features
+* **Task Lifecycle Management:** Create tasks with titles, due dates, and optional project categories.
+* **Status Tracking:** Mark tasks as completed or incomplete, edit existing details, or remove tasks.
+* **Sorting & Views:** View tasks sorted by due date or project.
+* **Fault-Tolerant Persistence:** Task data is held in memory during execution and automatically saved to a local JSON file. If file writing fails, active session data is preserved while notifying the user.
+* **Automatic Backups:** Corrupted or unreadable data files are safely backed up with timestamps during startup, allowing the app to launch with a fresh state without data destruction.
 
-* **View tasks**, including completed and incomplete tasks
-* **Add tasks** with a title, due date, and optional project
-* **Edit and delete** tasks
-* **Mark tasks** complete or incomplete
-* **Sort tasks** by due date or project
-* **Assign short, readable IDs** to tasks
-* **Save task data** as JSON between runs
-* **Migrate existing task data** from the older project-local location
-* **Preserve damaged data** by moving an unreadable file aside before starting with an empty list
+---
 
-## Folder Structure
+## 🏗️ Architecture & High-Level Data Flow
+
+TooDoo follows a clear separation of concerns across **Models**, **Services**, and **Console Views**:
 
 ```text
-TooDoo/
-├── App.cs
-├── Program.cs
-├── TooDoo.csproj
-├── ConsoleUI/
-│   ├── Colors.cs
-│   ├── ConsoleFormats.cs
-│   ├── ConsoleMenu.cs
-│   ├── Prompts.cs
-│   └── TaskTableRenderer.cs
-├── Data/
-│   └── tasks.json
-├── Models/
-│   ├── TaskDetails.cs
-│   ├── TaskItem.cs
-│   └── TaskSortOrder.cs
-├── Services/
-│   ├── StorageLocation.cs
-│   ├── TaskRepository.cs
-│   └── TaskService.cs
-└── Views/
-    ├── AddTaskView.cs
-    ├── EditTasksView.cs
-    ├── ShowTasksView.cs
-    ├── TaskDetailsPrompt.cs
-    └── TaskListView.cs
+[ Terminal Views ] <---> [ TaskService ] <---> [ TaskRepository ] <---> [ tasks.json ]
+
 ```
 
-## How to Run
+1. **Initialization:** `Program.cs` resolves the local file storage path via `StorageLocation` and initializes `TaskRepository` and `TaskService`.
+2. **Data Loading:** `TaskService` loads saved tasks asynchronously. `TaskRepository` parses the JSON file and converts entries into strongly-typed `TaskItem` objects.
+3. **Menu Routing:** `App.cs` executes the interactive main menu loop and delegates operations to target views (`ShowTasksView`, `AddTaskView`, `EditTasksView`).
+4. **Operations & State:** Views gather user input and invoke domain operations on `TaskService`. The service updates its in-memory task collection and triggers asynchronous persistence via `TaskRepository`.
+5. **Error Recovery:** If a file write fails, task modifications remain in memory and the UI alerts the user (`SaveFailed` event). Subsequent operations or exiting the application will attempt a save retry.
 
-### Requirements
-* **.NET 10 SDK**
+---
 
-### Execution Commands
+## 📁 Repository Structure & Application Components
 
-From the repository root, run:
+### 🟢 Application Entry & Lifecycle
 
-```bash
-dotnet run --project "TooDoo/TooDoo.csproj"
-```
+| Component | File | Description |
+| --- | --- | --- |
+| **Entry Point** | `Program.cs` | Resolves storage path (`GetDataFilePath`), handles startup data loading (`TryLoadTasksAsync`), backs up corrupted task files (`TryStartWithEmptyList`), and boots `App.cs`. |
+| **App Orchestrator** | `App.cs` | Manages the main menu workflow (`RunAsync`), displays live task counters (`BuildTaskSummary`), and handles save failure notifications (`ReportSaveFailure`). |
 
-If the repository root is already the `TooDoo` project directory, run:
+### 📦 Domain Models
 
-```bash
-dotnet run
-```
+| Component | File | Description |
+| --- | --- | --- |
+| **`TaskItem`** | `TaskItem.cs` | Core domain entity representing a task. Enforces business rules (non-blank titles, required due dates, text normalization) and handles state changes (`Update`, `ToggleDone`). |
+| **`TaskDetails`** | `TaskDetails.cs` | Immutable record carrying user input (`Title`, `DueDate`, `Project`) for creating and editing tasks. |
+| **`TaskSortOrder`** | `TaskSortOrder.cs` | Enum defining task sorting strategies (`DueDate`, `Project`). |
 
-> **Note:** On first launch, TooDoo starts with an empty task list if no saved data exists. Tasks are stored as JSON in the user's application-data directory.
+### ⚙️ Services & Data Persistence
 
-## Screenshots
+| Component | File | Description |
+| --- | --- | --- |
+| **`TaskService`** | `TaskService.cs` | Core business layer holding the active task list in memory. Manages task filtering, unique short-ID generation, project name querying, CRUD operations, and dispatches `SaveFailed` events on I/O errors. |
+| **`TaskRepository`** | `TaskRepository.cs` | Data access layer reading and writing tasks to JSON. Uses temporary file writes prior to replacement for atomic saves, handles legacy file format compatibility, and creates timestamps for unreadable files (`BackUpUnreadableFile`). |
+| **`StorageLocation`** | `StorageLocation.cs` | Utility class determining the cross-platform system file path (`GetDataFilePath`) where JSON task data is stored. |
 
-*(Add your screenshots here)*
+### 💻 User Interface & Console Views
+
+#### UI Helpers & Formatting
+
+* **`ConsoleMenu.cs`**: Renders menu choices and captures interactive user selections.
+* **`Prompts.cs`**: Handles command-line input collection and pause-to-continue interactions.
+* **`Colors.cs`**: Manages terminal color output for visual hierarchy and status indicators.
+* **`ConsoleFormats.cs`**: Formatting utilities for headers, dates, and status text.
+* **`TaskTableRenderer.cs`**: Renders task lists into structured ASCII terminal tables.
+
+#### Interactive Views
+
+* **`AddTaskView.cs`**: Handles user interactions for prompting task details and adding new tasks.
+* **`EditTasksView.cs`**: Coordinates task selection for updating fields, toggling completion, or deleting items.
+* **`ShowTasksView.cs`**: Displays filtered and sorted task lists.
+* **`TaskListView.cs`**: Supporting UI component for task list navigation and selection.
+* **`TaskDetailsPrompt.cs`**: Standardized console input prompter for collecting title, due date, and project information.
+
+---
+
+## 📐 Layer Responsibilities Summary
+
+| Layer | Primary Responsibilities | Components |
+| --- | --- | --- |
+| **Models** | Entity validation, normalization, immutable transfer objects | `TaskItem`, `TaskDetails`, `TaskSortOrder` |
+| **Services** | Business logic, task sorting, ID generation, JSON file persistence | `TaskService`, `TaskRepository`, `StorageLocation` |
+| **Console UI** | Terminal rendering, menu navigation, input prompts, table formatting | `App`, `ConsoleMenu`, Views, Renderers |
