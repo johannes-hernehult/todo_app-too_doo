@@ -76,6 +76,23 @@ TooDoo follows a clear separation of concerns across **Models**, **Services**, a
 
 ---
 
+* **`EditTasksView.cs`**: Coordinates task selection for updating fields, toggling completion, or deleting items.
+* **`ShowTasksView.cs`**: Displays filtered and sorted task lists.
+* **`TaskListView.cs`**: Supporting UI component for task list navigation and selection.
+* **`TaskDetailsPrompt.cs`**: Standardized console input prompter for collecting title, due date, and project information.
+
+### Command Overview
+
+Commands are entered in the task-list views. Replace `<id>` with the task's displayed ID.
+
+| View | Commands and interaction |
+| --- | --- |
+| **Add task** (`AddTaskView`) | Follow the prompts to enter the title, due date, and optional project. After adding a task, enter `a` to add another or `q` to return to the main menu. |
+| **Show tasks** (`ShowTasksView`) | `toggle <id>` — mark a task done or not done; `todo` — show incomplete tasks; `done` — show completed tasks; `sort` — switch between due-date and project order; `q` — return to the main menu. |
+| **Edit tasks** (`EditTasksView`) | `edit <id>` — edit a task's details; `delete <id>` — delete a task after confirmation; `toggle <id>` — mark a task done or not done; `todo` — show incomplete tasks; `done` — show completed tasks; `q` — return to the main menu. |
+
+---
+
 ## 📐 Layer Responsibilities Summary
 
 | Layer | Primary Responsibilities | Components |
