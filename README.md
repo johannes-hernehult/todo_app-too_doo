@@ -25,7 +25,7 @@ A lightweight, resilient console task manager built with C# and .NET. **TooDoo**
 
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/your-username/TooDoo.git
+   git clone https://github.com/johannes-hernehult/TooDoo.git
    cd TooDoo
    ```
 
