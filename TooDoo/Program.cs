@@ -18,7 +18,6 @@ async Task<bool> TryLoadTasksAsync()
 {
     try
     {
-        StorageLocation.MigrateLegacyFile(dataFilePath);
         await taskService.LoadAsync();
         return true;
     }
