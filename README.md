@@ -134,9 +134,3 @@ TooDoo/
 2. **Atomic Disk Operations (`TaskRepository.cs`):** Writes task lists to a unique `.tmp` file prior to replacing the main `tasks.json`. If a system crash occurs mid-write, original disk data is preserved.
 3. **Data DTO Isolation (`StoredTask`):** Keeps disk JSON structures decoupled from domain entities (`TaskItem`), enabling smooth backward compatibility for older JSON data formats without polluting business logic.
 4. **Domain Guarding:** Inputs are sanitized and verified at the entity boundary (`TaskItem`), guaranteeing tasks can never exist in an invalid state.
-
----
-
-## 📄 License
-
-Distributed under the MIT License. See `LICENSE` for details.
