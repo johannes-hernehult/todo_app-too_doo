@@ -1,136 +1,80 @@
 # TooDoo
 
-A lightweight, resilient console task manager built with C# and .NET. **TooDoo** helps you organize tasks by title, due date, and project category directly from your terminal—featuring crash protection, ANSI visual styling, and fault-tolerant JSON persistence.
+A console task manager written in C# and .NET. Track tasks by title, due date, and project, right from your terminal.
 
----
+<img width="929" height="360" alt="image" src="https://github.com/user-attachments/assets/ab77c5da-d894-4b9f-bb29-edc2af473e98" />
 
-## 📌 Key Features
 
-- **Task Management:** Create, view, update, toggle, and delete tasks with validated fields (title, due date, and optional project category).
-- **Flexible Views & Sorting:** Separate views for active vs. completed tasks, with dynamic sorting by **Due Date** or **Project**.
-- **Atomic File Persistence:** Write-to-temp operations (`.tmp`) ensure your data file is never corrupted or left in a partial state if power cuts or an app crash occurs mid-save.
-- **Automatic Corruption Recovery:** Damaged JSON data files are automatically backed up with a timestamp (`.corrupt-yyyyMMdd-HHmmss-fff`) during startup, allowing TooDoo to safely launch with a fresh state without losing the original file.
-- **Backward-Compatible Schema:** Transparently reads legacy JSON data formats storing numeric status codes while migrating cleanly to boolean flags.
-- **Readable Short IDs:** Generates 4-character cryptographic IDs using a custom alphabet that excludes easily confused characters (`0`/`O`, `1`/`I`).
-- **ANSI Terminal Interface:** Styled console UI featuring color-coded due date indicators (overdue, due today, due yesterday) and alternate row shading.
+## Features
 
----
+- Add, edit, delete, and mark tasks done, with validated input
+- Separate to-do and completed lists, sortable by due date or project
+- Color-coded due dates (today, yesterday, overdue) and alternating row shading
+- Saves automatically after every change
+- Protects your data: a crash mid-save can't leave a half-written file, and a corrupt file is moved aside, never overwritten
 
-## 🚀 Getting Started
+## Getting started
 
-### Prerequisites
-- [.NET 10.0 SDK](https://dotnet.microsoft.com/download) or later installed.
+**Requires:** [.NET 10 SDK](https://dotnet.microsoft.com/download) and a terminal with ANSI color support, at least 90 columns wide.
 
-### Quick Start
-
-1. **Clone the repository:**
-   ```bash
-   git clone https://github.com/johannes-hernehult/TooDoo.git
-   cd TooDoo
-   ```
-
-2. **Run the application:**
-   ```bash
-   dotnet run --project TooDoo
-   ```
-
----
-
-## 🏗️ Architecture & Data Flow
-
-TooDoo follows a strict separation of concerns between domain entities, persistent repositories, and interactive views:
-
-```text
-[ Console Views ] <---> [ TaskService ] <---> [ TaskRepository ] <---> [ tasks.json ]
+```bash
+git clone https://github.com/johannes-hernehult/todo_app-too_doo.git
+cd todo_app-too_doo
+dotnet run --project TooDoo
 ```
 
-1. **Initialization:** `Program.cs` resolves the system-specific data folder via `StorageLocation` and initializes the repository and service layers.
-2. **Data Loading:** `TaskService` loads saved JSON tasks through `TaskRepository`, which deserializes disk data into strongly-typed `TaskItem` domain objects.
-3. **Menu Routing:** `App.cs` runs the main interactive loop, routing user actions to focused views (`ShowTasksView`, `AddTaskView`, `EditTasksView`).
-4. **State & Persistence:** Views execute domain operations on `TaskService`. The service updates its in-memory task collection and triggers asynchronous disk writes.
-5. **Fault Tolerant I/O:** If a disk write fails, changes remain safe in memory, a `SaveFailed` event alerts the user, and the app retries saving on subsequent changes or exit.
+Tasks are stored in `tasks.json` in your app data folder (`%APPDATA%\TooDoo` on Windows, `~/.config/TooDoo` on Linux).
 
----
+## Usage
 
-## 💻 Command & Navigation Reference
+Pick an option from the main menu: show tasks, add a task, edit tasks, or quit. Inside a list, type a command:
 
-### Main Menu Options
-
-| Option | Action |
-| :--- | :--- |
-| `(1) Show tasks` | Open active or completed task list view with sorting options. |
-| `(2) Add new task` | Step-by-step creation prompt with project auto-suggestions. |
-| `(3) Edit tasks` | Command-driven management view to edit, toggle, or delete tasks. |
-| `(q) Quit` | Trigger final save check and exit application. |
-
-### Interactive View Commands
-
-Commands are entered directly into list views. Replace `<id>` with the displayed 4-character task ID.
-
-| Command | Description | Available In |
+| Command | What it does | Where |
 | :--- | :--- | :--- |
-| `toggle <id>` | Flip completion status (`Done` $\leftrightarrow$ `To-Do`). | Show tasks, Edit tasks |
-| `edit <id>` | Prompt to update title, due date, or project (Press `Enter` to keep existing value, `q` to cancel, `-` to clear project). | Edit tasks |
-| `delete <id>` | Permanently remove a task after user confirmation. | Edit tasks |
-| `todo` | Switch to the active/incomplete tasks view. | Show tasks, Edit tasks |
-| `done` | Switch to the completed tasks view. | Show tasks, Edit tasks |
-| `sort` | Toggle list sorting between **Due Date** and **Project**. | Show tasks |
-| `q` | Return to main menu. | All views |
+| `toggle <id>` | Mark a task done or not done | Show, Edit |
+| `edit <id>` | Change title, due date, or project (Enter keeps a value, `-` clears the project) | Edit |
+| `delete <id>` | Delete a task after confirmation | Edit |
+| `todo` / `done` | Switch between the to-do and completed lists | Show, Edit |
+| `sort` | Switch between due date and project order | Show |
+| `q` | Go back | All |
 
----
+Every task has a short 4-character ID. The alphabet leaves out `0`, `O`, `1`, and `I`, so IDs are easy to read and type.
 
-## 📂 Repository Structure & Component Map
+## Project structure
 
 ```text
 TooDoo/
-├── ConsoleUI/            # CLI utilities, menu logic, and table rendering
-├── Models/               # Core domain entities, transfer records, enums
-├── Services/             # Business logic, unique ID generation, file I/O
-├── Views/                # Screen views, base list controllers, prompt handlers
-├── App.cs                # Main menu loop & save failure listener
-└── Program.cs            # App bootstrap & startup crash recovery
+├── ConsoleUI/   Menu, prompts, colors, and the table renderer
+├── Models/      TaskItem, TaskDetails, TaskSortOrder
+├── Services/    TaskService (logic), TaskRepository (JSON file), StorageLocation
+├── Views/       Screens: show, add, edit
+├── App.cs       Main menu loop
+└── Program.cs   Startup and corrupt-file recovery
 ```
 
-### 🟢 Application Bootstrap
+Data flows in one direction:
 
-| File | Responsibilities |
-| :--- | :--- |
-| `Program.cs` | Resolves data path, loads initial tasks, handles corrupt file backups, and starts `App.cs`. |
-| `App.cs` | Runs main menu loop, builds live task counters, and displays non-intrusive save error alerts. |
+```text
+Views  →  TaskService  →  TaskRepository  →  tasks.json
+```
 
-### 📦 Models & Domain Rules
+Views never touch the file. `TaskService` owns the task list and saves after each change. `TaskRepository` is the only class that reads or writes JSON.
 
-| File | Responsibilities |
-| :--- | :--- |
-| `TaskItem.cs` | Central domain model. Enforces non-empty titles, valid dates, and handles field updates. |
-| `TaskDetails.cs` | Immutable record used for cleanly transferring user inputs from UI prompts to services. |
-| `TaskSortOrder.cs` | Enum defining sorting strategies (`DueDate`, `Project`). |
+## Design notes
 
-### ⚙️ Services & Data Access
+- **Safe saving.** `TaskRepository` writes to a temporary file and then swaps it in with `File.Move`. If the app crashes mid-write, the original file is untouched.
+- **Corruption recovery.** If `tasks.json` can't be read at startup, it is renamed to `tasks.json.corrupt-<timestamp>` and TooDoo starts with an empty list. Your original data stays recoverable.
+- **Template Method.** `TaskListView` handles the commands every list shares (`toggle`, `todo`, `done`, `q`). `ShowTasksView` and `EditTasksView` add only their own.
+- **Table as data.** `TaskTableRenderer` describes each column as a header, a width, and a function. Adding a column is one line.
+- **Separate storage format.** The private `StoredTask` record keeps the file layout independent of `TaskItem`. It also reads the old format, which stored a numeric status.
+- **Validation at the model.** `TaskItem` checks titles and dates in its constructor and in `Update`, so a bad value never leaves a task half-updated.
 
-| File | Responsibilities |
-| :--- | :--- |
-| `TaskService.cs` | Owns the in-memory task collection, generates unambiguous IDs, handles filtering, and fires I/O error events. |
-| `TaskRepository.cs` | Manages JSON serialization/deserialization, atomic `.tmp` file swapping, and corrupted file renaming. |
-| `StorageLocation.cs` | Resolves system application data folder paths across OS platforms (Windows `%APPDATA%`, Linux `~/.config`). |
+## Limitations
 
-### 💻 Console UI & Views
+- The whole file is rewritten on every change. That is fine for a personal list, but not for thousands of tasks.
+- Running two copies at once is not supported; the last save wins.
+- Saves are crash-safe but do not force data to disk, so a sudden power loss can still lose the latest change.
 
-| File | Responsibilities |
-| :--- | :--- |
-| `TaskListView.cs` | Abstract base class using the **Template Method pattern** to handle shared list commands (`todo`, `done`, `toggle`, `q`). |
-| `ShowTasksView.cs` | Specialized list view handling list display and project/date sorting. |
-| `EditTasksView.cs` | Specialized list view handling task editing and deletion confirmation. |
-| `AddTaskView.cs` | Interactive creation flow supporting session history and multi-task entry loops. |
-| `TaskDetailsPrompt.cs` | Reusable console prompter with default-keeping and project suggestions. |
-| `TaskTableRenderer.cs` | Formats tasks into clean, aligned ASCII tables with dynamic ANSI color highlights. |
-| `Colors.cs` / `Prompts.cs` | ANSI styling rules, background colors, error helpers, and input prompt utilities. |
+## About
 
----
-
-## 🛠️ Design Patterns & Technical Highlights
-
-1. **Template Method Pattern (`TaskListView.cs`):** Avoids DRY violations by putting standard list navigation (`todo`, `done`, `toggle`, `q`) in a base class while letting child views declare custom commands (`edit`, `delete`, `sort`).
-2. **Atomic Disk Operations (`TaskRepository.cs`):** Writes task lists to a unique `.tmp` file prior to replacing the main `tasks.json`. If a system crash occurs mid-write, original disk data is preserved.
-3. **Data DTO Isolation (`StoredTask`):** Keeps disk JSON structures decoupled from domain entities (`TaskItem`), enabling smooth backward compatibility for older JSON data formats without polluting business logic.
-4. **Domain Guarding:** Inputs are sanitized and verified at the entity boundary (`TaskItem`), guaranteeing tasks can never exist in an invalid state.
+An individual project. The first version was working but tangled: UI, logic, and storage were mixed together. It was then refactored into the layers above.
