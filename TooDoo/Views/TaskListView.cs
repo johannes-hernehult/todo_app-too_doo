@@ -46,7 +46,7 @@ public abstract class TaskListView(TaskService taskService)
         }
     }
 
-    /// <summary>Finds the task named by a "&lt;command&gt; &lt;taskID&gt;" input, or explains why not.</summary>
+    /// <summary>Finds the task named by a "command /<taskID/>" input, or explains why not.</summary>
     protected static bool TryFindTask(
         string command,
         string[] arguments,
