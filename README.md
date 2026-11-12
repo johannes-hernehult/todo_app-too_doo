@@ -66,7 +66,6 @@ Views never touch the file. `TaskService` owns the task list and saves after eac
 - **Corruption recovery.** If `tasks.json` can't be read at startup, it is renamed to `tasks.json.corrupt-<timestamp>` and TooDoo starts with an empty list. Your original data stays recoverable.
 - **Template Method.** `TaskListView` handles the commands every list shares (`toggle`, `todo`, `done`, `q`). `ShowTasksView` and `EditTasksView` add only their own.
 - **Table as data.** `TaskTableRenderer` describes each column as a header, a width, and a function. Adding a column is one line.
-- **Separate storage format.** The private `StoredTask` record keeps the file layout independent of `TaskItem`. It also reads the old format, which stored a numeric status.
 - **Validation at the model.** `TaskItem` checks titles and dates in its constructor and in `Update`, so a bad value never leaves a task half-updated.
 
 ## Limitations
