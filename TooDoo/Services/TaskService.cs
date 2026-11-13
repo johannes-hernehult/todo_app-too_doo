@@ -39,7 +39,7 @@ public class TaskService(TaskRepository repository)
         IOrderedEnumerable<TaskItem> orderedTasks = sortOrder switch
         {
             TaskSortOrder.Project => tasks
-                .OrderBy(task => task.Project is null)
+                .OrderBy(task => task.Project == "-")
                 .ThenBy(task => task.Project, StringComparer.OrdinalIgnoreCase)
                 .ThenBy(task => task.DueDate)
                 .ThenBy(task => task.Title, StringComparer.OrdinalIgnoreCase),
